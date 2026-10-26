@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Tracker</title>
+  <style>
+    :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: #09090b; color: #e4e4e7;
+      height: 100dvh; overflow: hidden;
+      display: flex; flex-direction: column;
+      -webkit-font-smoothing: antialiased; font-optical-sizing: auto;
+    }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 20px 32px; border-bottom: 1px solid #18181b;
+      background: #09090b; z-index: 10; flex-shrink: 0;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .logo { width: 28px; height: 28px; background: #4f46e5; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; flex-shrink: 0; }
+    h1 { font-size: 16px; font-weight: 600; color: #fafafa; letter-spacing: -0.015em; }
+    .subtitle { font-size: 12px; color: #52525b; margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .last-sync { font-size: 11px; color: #52525b; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 7px; border: 1px solid #27272a;
+      background: #18181b; color: #a1a1aa; font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+      touch-action: manipulation; user-select: none;
+      transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out),
+                  border-color 0.12s var(--ease-out), transform 0.1s var(--ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .btn:hover { background: #27272a; color: #e4e4e7; border-color: #3f3f46; }
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn.success { border-color: #166534; color: #4ade80; background: #052e16; }
+    .btn-primary { background: #4f46e5; border-color: #4f46e5; color: white; }
+    @media (hover: hover) and (pointer: fine) {
+      .btn-primary:hover { background: #4338ca; border-color: #4338ca; color: white; }
+    }
+
+    /* ── Main layout ─── */
+    .kanban {
+      display: flex; gap: 20px; padding: 24px 32px;
+      align-items: stretch; flex: 1; min-height: 0;
+      max-width: 1600px; width: 100%; margin: 0 auto; box-sizing: border-box;
+    }
+
+    .column {
+      flex: 1; min-width: 0; background: #111113; border: 1px solid #18181b;
+      border-radius: 14px; padding: 16px;
+      display: flex; flex-direction: column; min-height: 0;
+      transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+    }
+    .column.drag-over {
+      border-color: #4f46e5;
+      background: #131320;
+    }
+
+    /* Scrollable card list inside each column */
+    .col-cards {
+      flex: 1; overflow-y: auto; min-height: 0;
+      padding-right: 2px;
+    }
+    .col-cards::-webkit-scrollbar { width: 3px; }
+    .col-cards::-webkit-scrollbar-track { background: transparent; }
+    .col-cards::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
+    .col-cards::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+    .column-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #18181b;
+    }
+    .col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .col-active .col-dot   { background: #22c55e; box-shadow: 0 0 8px #22c55e66; }
+    .col-paused .col-dot   { background: #eab308; }
+    .col-parking .col-dot  { background: #8b5cf6; }
+
+    .col-title { font-size: 13px; font-weight: 600; color: #d4d4d8; }
+    .col-count { font-size: 11px; color: #52525b; margin-left: auto; background: #18181b; padding: 2px 7px; border-radius: 100px; }
+
+    /* ── Archived strip ─── */
+    .archived-wrapper {
+      flex-shrink: 0; width: 36px; overflow: hidden;
+      transition: width 0.35s var(--ease-out);
+      display: flex; flex-direction: column;
+    }
+    .archived-wrapper.open { width: 300px; }
+    .archived-wrapper.drag-over .archived-strip { border-color: #4f46e5; background: #131320; }
+
+    .archived-strip {
+      width: 36px; flex: 1; background: #111113;
+      border: 1px solid #18181b; border-radius: 14px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; cursor: pointer; font-family: inherit; user-select: none;
+      touch-action: manipulation;
+      transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .archived-strip:hover { border-color: #27272a; }
+    }
+    .archived-strip:active { transform: scale(0.98); transition-duration: 0.05s; }
+    .archived-wrapper.open .archived-strip { display: none; }
+
+    .archived-strip-label {
+      writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+      font-size: 11px; font-weight: 600; color: #52525b;
+      letter-spacing: 0.07em; text-transform: uppercase;
+    }
+    .archived-strip-count {
+      font-size: 11px; font-weight: 500; color: #3f3f46;
+      background: #18181b; padding: 2px 6px; border-radius: 100px;
+    }
+
+    .archived-full {
+      display: none; width: 300px; background: #111113;
+      border: 1px solid #18181b; border-radius: 14px; padding: 16px;
+      flex-direction: column; flex: 1; min-height: 0;
+    }
+    .archived-wrapper.open .archived-full { display: flex; }
+    .archived-full .col-cards { flex: 1; overflow-y: auto; min-height: 0; padding-right: 2px; }
+
+    .archived-full-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #18181b;
+    }
+    .archived-dot { width: 8px; height: 8px; border-radius: 50%; background: #3f3f46; flex-shrink: 0; }
+    .archived-close {
+      margin-left: auto; width: 22px; height: 22px; border-radius: 5px;
+      border: 1px solid #27272a; background: transparent; color: #52525b;
+      font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-family: inherit; transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+      touch-action: manipulation;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .archived-close:hover { background: #27272a; color: #a1a1aa; }
+    }
+
+    /* ── Cards ─── */
+    .card {
+      background: #18181b; border: 1px solid #27272a; border-radius: 10px;
+      padding: 14px; margin-bottom: 8px; cursor: grab; overflow: hidden;
+      transition: border-color 0.15s var(--ease-out), box-shadow 0.2s var(--ease-out),
+                  transform 0.2s var(--ease-out), background 0.15s var(--ease-out),
+                  opacity 0.15s var(--ease-out);
+      user-select: none; touch-action: manipulation;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .card:hover {
+        border-color: #3f3f46;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.15);
+        transform: translateY(-1px);
+      }
+    }
+    .card:active { cursor: grabbing; }
+    .card.open { border-color: #4f46e5; background: #1a1a2e; }
+    @media (hover: hover) and (pointer: fine) {
+      .card.open:hover { border-color: #6366f1; transform: translateY(0); box-shadow: none; }
+    }
+    .card.dragging { opacity: 0.4; transform: scale(0.98); cursor: grabbing; }
+
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .card-name { font-size: 13px; font-weight: 600; color: #fafafa; line-height: 1.3; }
+    .card-copy { flex-shrink: 0; opacity: 0; transition: opacity 0.15s var(--ease-out); }
+    @media (hover: hover) and (pointer: fine) {
+      .card:hover .card-copy { opacity: 1; }
+    }
+
+    .card-stage {
+      display: inline-block; font-size: 10px; font-weight: 500;
+      padding: 2px 8px; border-radius: 100px; background: #27272a; color: #71717a; margin-top: 6px;
+    }
+
+    .card-meta { font-size: 11px; color: #52525b; margin-top: 6px; }
+    .card-desc { font-size: 11px; color: #52525b; margin-top: 6px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #1e1e38; color: #818cf8; border: 1px solid #2d2d5e; }
+
+    .products { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .product { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.03em; }
+    .product-webapp    { background: #1e3a5f; color: #60a5fa; border: 1px solid #1d4ed8; }
+    .product-mobile    { background: #14532d; color: #4ade80; border: 1px solid #166534; }
+    .product-ai        { background: #3b0764; color: #c084fc; border: 1px solid #7c3aed; }
+    .product-personal  { background: #292524; color: #d6d3d1; border: 1px solid #57534e; }
+    .product-v4-mobile { background: #0d3d38; color: #2dd4bf; border: 1px solid #0f766e; }
+    .product-scope     { background: #1c1917; color: #a8a29e; border: 1px solid #44403c; }
+    .product-companion { background: #1a1a2e; color: #818cf8; border: 1px solid #4f46e5; }
+
+    .expand-icon { font-size: 10px; color: #52525b; margin-top: 8px; text-align: right; transition: color 0.15s var(--ease-out); }
+    .expand-icon::before { content: '▾ expand'; }
+    .card.open .expand-icon::before { content: '▴ collapse'; }
+    @media (hover: hover) and (pointer: fine) { .card:hover .expand-icon { color: #71717a; } }
+    .card.open .expand-icon { color: #818cf8; }
+
+    .card-expanded {
+      max-height: 0; overflow: hidden; opacity: 0;
+      margin-top: 0; padding-top: 0; border-top: 0px solid #27272a;
+      transition: max-height 0.4s var(--ease-out), opacity 0.25s var(--ease-out),
+                  margin-top 0.35s var(--ease-out), padding-top 0.35s var(--ease-out);
+    }
+    .card.open .card-expanded {
+      max-height: 900px; opacity: 1; margin-top: 14px; padding-top: 14px; border-top-width: 1px;
+    }
+
+    .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: #52525b; text-transform: uppercase; margin-bottom: 8px; }
+    .timeline { position: relative; padding-left: 14px; margin-bottom: 16px; }
+    .timeline::before { content: ''; position: absolute; left: 3px; top: 6px; bottom: 6px; width: 1px; background: #27272a; }
+    .tl-item { position: relative; margin-bottom: 12px; }
+    .tl-item:last-child { margin-bottom: 0; }
+    .tl-dot { position: absolute; left: -14px; top: 5px; width: 7px; height: 7px; border-radius: 50%; background: #4f46e5; border: 1px solid #1a1a2e; }
+    .tl-dot.first { background: #22c55e; }
+    .tl-header { display: flex; align-items: center; gap: 6px; }
+    .tl-stage { font-size: 12px; font-weight: 600; color: #d4d4d8; }
+    .tl-date { font-size: 10px; color: #52525b; }
+    .tl-note { font-size: 11px; color: #71717a; margin-top: 2px; line-height: 1.4; overflow-wrap: break-word; }
+
+    .recall-box { background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; }
+    .recall-cmd { font-family: 'SF Mono', 'Monaco', monospace; font-size: 11px; color: #71717a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .empty-col { text-align: center; padding: 32px 16px; color: #3f3f46; font-size: 12px; }
+
+    .card-media { margin-bottom: 16px; }
+    .card-video {
+      width: 100%; border-radius: 8px; display: block;
+      border: 1px solid #27272a; background: #09090b;
+      max-height: 260px; object-fit: contain;
+    }
+    .card-video-label { font-size: 10px; color: #52525b; margin-top: 5px; }
+
+    /* Drop zone hint when dragging */
+    .drop-hint { display: none; }
+    body.dragging-active .drop-hint { display: block; text-align: center; padding: 16px; font-size: 11px; color: #3f3f46; border: 1px dashed #27272a; border-radius: 8px; margin-top: 4px; }
+
+    /* Save indicator */
+    .save-toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 200;
+      background: #18181b; border: 1px solid #27272a; border-radius: 10px;
+      padding: 10px 14px; font-size: 12px; color: #71717a;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+      pointer-events: none;
+    }
+    .save-toast.visible { opacity: 1; transform: translateY(0); }
+    .save-toast.saved { color: #4ade80; border-color: #166534; }
+
+    /* ── Modal ─── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #18181b; border: 1px solid #27272a; border-radius: 14px; padding: 24px; width: 480px; max-width: 90vw; }
+    .modal h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.01em; }
+    .form-group { margin-bottom: 12px; }
+    .form-label { font-size: 11px; color: #71717a; margin-bottom: 4px; display: block; }
+    .form-input { width: 100%; background: #09090b; border: 1px solid #27272a; border-radius: 7px; padding: 8px 10px; color: #e4e4e7; font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.15s var(--ease-out); }
+    .form-input:focus { border-color: #4f46e5; }
+    .form-select { width: 100%; background: #09090b; border: 1px solid #27272a; border-radius: 7px; padding: 8px 10px; color: #e4e4e7; font-size: 13px; font-family: inherit; outline: none; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+    /* ── Search ─── */
+    .search-wrap { position: relative; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 9px; font-size: 14px; color: #52525b; pointer-events: none; line-height: 1; }
+    .search-input {
+      background: #18181b; border: 1px solid #27272a; border-radius: 8px;
+      padding: 7px 28px 7px 28px; color: #e4e4e7; font-size: 12px; font-family: inherit;
+      outline: none; width: 220px;
+      transition: border-color 0.15s var(--ease-out), width 0.25s var(--ease-out);
+    }
+    .search-input::placeholder { color: #52525b; }
+    .search-input:focus { border-color: #4f46e5; width: 280px; }
+    .search-clear { position: absolute; right: 8px; font-size: 16px; color: #52525b; cursor: pointer; display: none; line-height: 1; padding: 2px; transition: color 0.12s var(--ease-out); touch-action: manipulation; }
+    @media (hover: hover) and (pointer: fine) { .search-clear:hover { color: #a1a1aa; } }
+    .search-clear.visible { display: block; }
+    .search-count { font-size: 11px; color: #818cf8; white-space: nowrap; display: none; }
+    .search-count.visible { display: block; }
+
+    @media (max-width: 1100px) {
+      .kanban { padding: 16px; }
+      .search-input { width: 150px; }
+      .search-input:focus { width: 200px; }
+      .last-sync { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">P</div>
+    <div>
+      <h1>Project Tracker</h1>
+      <div class="subtitle" id="lastSync">Loading…</div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" id="searchInput" placeholder="Search projects…" oninput="filterProjects(this.value)" />
+    <span class="search-clear" id="searchClear" onclick="clearSearch()">×</span>
+  </div>
+  <div class="header-right">
+    <span class="search-count" id="searchCount"></span>
+    <span class="last-sync" id="autoRefreshNote">Auto-refresh every 30s</span>
+    <button class="btn" onclick="loadProjects()">↻ Refresh</button>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add Project</button>
+  </div>
+</header>
+
+<div class="kanban" id="kanban">
+  <div class="column col-active" data-status="active">
+    <div class="column-header">
+      <div class="col-dot"></div>
+      <span class="col-title">Active</span>
+      <span class="col-count" id="count-active">0</span>
+    </div>
+    <div class="col-cards" id="col-active"><div class="drop-hint">Drop here</div></div>
+  </div>
+
+  <div class="column col-paused" data-status="paused">
+    <div class="column-header">
+      <div class="col-dot"></div>
+      <span class="col-title">Paused</span>
+      <span class="col-count" id="count-paused">0</span>
+    </div>
+    <div class="col-cards" id="col-paused"><div class="drop-hint">Drop here</div></div>
+  </div>
+
+  <div class="column col-parking" data-status="parking-lot">
+    <div class="column-header">
+      <div class="col-dot"></div>
+      <span class="col-title">Parking Lot</span>
+      <span class="col-count" id="count-parking-lot">0</span>
+    </div>
+    <div class="col-cards" id="col-parking-lot"><div class="drop-hint">Drop here</div></div>
+  </div>
+
+  <div class="archived-wrapper" id="archivedWrapper" data-status="archived">
+    <button class="archived-strip" onclick="toggleArchived()">
+      <span class="archived-strip-count" id="count-archived">0</span>
+      <span class="archived-strip-label">Archived</span>
+    </button>
+    <div class="archived-full">
+      <div class="archived-full-header">
+        <div class="archived-dot"></div>
+        <span class="col-title">Archived</span>
+        <button class="archived-close" onclick="toggleArchived()">✕</button>
+      </div>
+      <div class="col-cards" id="col-archived"><div class="drop-hint">Drop here</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="save-toast" id="saveToast"></div>
+
+<!-- Add Project Modal -->
+<div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>Add Project</h2>
+    <div class="form-group">
+      <label class="form-label">Project Name</label>
+      <input class="form-input" id="new-name" placeholder="My Project" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input class="form-input" id="new-desc" placeholder="What is this project?" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Path (e.g. ~/my-project)</label>
+      <input class="form-input" id="new-path" placeholder="~/my-project" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Current Stage</label>
+      <input class="form-input" id="new-stage" placeholder="Kickoff, In progress, etc." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-select" id="new-status">
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+        <option value="parking-lot">Parking Lot</option>
+        <option value="archived">Archived</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tags (comma-separated)</label>
+      <input class="form-input" id="new-tags" placeholder="frontend, AI, mobile" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Recall Command</label>
+      <input class="form-input" id="new-recall" placeholder="cd ~/my-project && git log --oneline -5" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addProject()">Add Project</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allProjects = [];
+  let draggedId = null;
+
+  function relDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = Math.floor((now - d) / 86400000);
+    if (diff === 0) return 'today';
+    if (diff === 1) return 'yesterday';
+    if (diff < 7) return diff + 'd ago';
+    if (diff < 30) return Math.floor(diff / 7) + 'w ago';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function copy(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('success');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('success'); }, 2000);
+    });
+  }
+
+  function toggleCard(id) {
+    if (draggedId) return; // don't toggle while dragging
+    const el = document.getElementById('card-' + id);
+    if (el) el.classList.toggle('open');
+  }
+
+  function renderCard(p) {
+    const tags = (p.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+    const products = (p.products || []).map(pr => `<span class="product product-${pr}">${pr}</span>`).join('');
+    const recall = p.recallCommand || `cd ${p.path}`;
+    const recallEsc = recall.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const history = (p.history || []).slice().reverse();
+    const timeline = history.map((h, i) => `
+      <div class="tl-item">
+        <div class="tl-dot ${i === 0 ? 'first' : ''}"></div>
+        <div class="tl-header">
+          <span class="tl-stage">${h.stage}</span>
+          <span class="tl-date">${h.date}</span>
+        </div>
+        ${h.note ? `<div class="tl-note">${h.note}</div>` : ''}
+      </div>
+    `).join('');
+
+    return `
+      <div class="card" id="card-${p.id}" data-id="${p.id}" draggable="true">
+        <div class="card-top" onclick="toggleCard('${p.id}')">
+          <div style="flex:1;min-width:0;">
+            <div class="card-name">${p.name}</div>
+            <div class="card-stage">${p.stage}</div>
+            <div class="card-meta">${relDate(p.updatedAt)}</div>
+          </div>
+          <button class="btn card-copy" onclick="event.stopPropagation();copy('${recallEsc}',this)">Copy</button>
+        </div>
+        ${products ? `<div class="products" onclick="toggleCard('${p.id}')">${products}</div>` : ''}
+        ${p.description ? `<div class="card-desc" onclick="toggleCard('${p.id}')">${p.description}</div>` : ''}
+        ${tags ? `<div class="tags" onclick="toggleCard('${p.id}')">${tags}</div>` : ''}
+        <div class="expand-icon" onclick="toggleCard('${p.id}')"></div>
+        <div class="card-expanded">
+          ${(p.media || []).length ? `
+          <div class="card-media">
+            <div class="section-label">Media</div>
+            ${(p.media || []).map(m => m.type === 'video' ? `
+              <video class="card-video" controls preload="metadata">
+                <source src="${m.src}" type="video/mp4">
+              </video>
+              <div class="card-video-label">${m.label || ''}</div>
+            ` : '').join('')}
+          </div>` : ''}
+          <div class="section-label">History</div>
+          <div class="timeline">${timeline || '<div style="font-size:11px;color:#52525b;">No history yet</div>'}</div>
+          <div class="section-label">Recall Command</div>
+          <div class="recall-box">
+            <span class="recall-cmd">${recall}</span>
+            <button class="btn" onclick="copy('${recallEsc}',this)">Copy</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function render(projects) {
+    const src = projects || allProjects;
+    ['active', 'paused', 'parking-lot', 'archived'].forEach(status => {
+      const list = src.filter(p => p.status === status);
+      const elId = status === 'parking-lot' ? 'col-parking-lot' : 'col-' + status;
+      const countId = 'count-' + status;
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.innerHTML = (list.length ? list.map(renderCard).join('') : '') +
+        '<div class="drop-hint">Drop here</div>';
+      const countEl = document.getElementById(countId);
+      if (countEl) countEl.textContent = list.length;
+    });
+  }
+
+  /* ── Drag and drop ─────────────────────────────────── */
+  function initDragDrop() {
+    // Dragstart: delegation from kanban container
+    document.getElementById('kanban').addEventListener('dragstart', e => {
+      const card = e.target.closest('[data-id]');
+      if (!card) return;
+      draggedId = card.dataset.id;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedId);
+      document.body.classList.add('dragging-active');
+      // Defer class so drag image is taken before opacity change
+      requestAnimationFrame(() => card.classList.add('dragging'));
+    });
+
+    document.getElementById('kanban').addEventListener('dragend', e => {
+      const card = e.target.closest('[data-id]');
+      if (card) card.classList.remove('dragging');
+      document.body.classList.remove('dragging-active');
+      draggedId = null;
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    // Drop zones: main columns + archived wrapper
+    document.querySelectorAll('[data-status]').forEach(zone => {
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        zone.classList.add('drag-over');
+      });
+      zone.addEventListener('dragleave', e => {
+        if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+      });
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        const id = e.dataTransfer.getData('text/plain') || draggedId;
+        if (id) moveProject(id, zone.dataset.status);
+        draggedId = null;
+      });
+    });
+  }
+
+  function moveProject(id, newStatus) {
+    const p = allProjects.find(p => p.id === id);
+    if (!p || p.status === newStatus) return;
+    p.status = newStatus;
+    p.updatedAt = new Date().toISOString().slice(0, 10);
+    render();
+    saveProjects();
+  }
+
+  async function saveProjects() {
+    const toast = document.getElementById('saveToast');
+    toast.textContent = 'Saving…';
+    toast.className = 'save-toast visible';
+    try {
+      const res = await fetch('/projects.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projects: allProjects }, null, 2)
+      });
+      if (res.ok) {
+        toast.textContent = '✓ Saved';
+        toast.classList.add('saved');
+      } else {
+        throw new Error('Save failed');
+      }
+    } catch {
+      toast.textContent = 'Save failed — restart tracker server';
+      toast.classList.remove('saved');
+    }
+    setTimeout(() => { toast.className = 'save-toast'; }, 2000);
+  }
+
+  /* ── Search ─────────────────────────────────────────── */
+  function filterProjects(query) {
+    const q = query.trim().toLowerCase();
+    const clearBtn = document.getElementById('searchClear');
+    const countEl = document.getElementById('searchCount');
+    clearBtn.classList.toggle('visible', q.length > 0);
+    if (!q) { countEl.classList.remove('visible'); render(); return; }
+    const matched = allProjects.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.description || '').toLowerCase().includes(q) ||
+      (p.id || '').toLowerCase().includes(q) ||
+      (p.stage || '').toLowerCase().includes(q) ||
+      (p.tags || []).some(t => t.toLowerCase().includes(q)) ||
+      (p.products || []).some(pr => pr.toLowerCase().includes(q))
+    );
+    countEl.textContent = matched.length + ' result' + (matched.length !== 1 ? 's' : '');
+    countEl.classList.add('visible');
+    render(matched);
+  }
+
+  function clearSearch() {
+    const inp = document.getElementById('searchInput');
+    inp.value = '';
+    document.getElementById('searchClear').classList.remove('visible');
+    document.getElementById('searchCount').classList.remove('visible');
+    render();
+    inp.focus();
+  }
+
+  /* ── Data ──────────────────────────────────────────── */
+  async function loadProjects() {
+    try {
+      const res = await fetch('projects.json?t=' + Date.now());
+      const data = await res.json();
+      allProjects = data.projects || [];
+      render();
+      document.getElementById('lastSync').textContent =
+        'Synced at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      document.getElementById('lastSync').textContent = 'Error loading — is the server running?';
+    }
+  }
+
+  function toggleArchived() {
+    document.getElementById('archivedWrapper').classList.toggle('open');
+  }
+
+  function openAddModal() { document.getElementById('addModal').classList.add('open'); }
+  function closeAddModal(e) {
+    if (!e || e.target === document.getElementById('addModal'))
+      document.getElementById('addModal').classList.remove('open');
+  }
+
+  async function addProject() {
+    const name = document.getElementById('new-name').value.trim();
+    if (!name) return alert('Name is required');
+    const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const tags = document.getElementById('new-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+    const today = new Date().toISOString().slice(0, 10);
+    const p = {
+      id, name,
+      description: document.getElementById('new-desc').value.trim(),
+      path: document.getElementById('new-path').value.trim() || `~/${id}`,
+      status: document.getElementById('new-status').value,
+      stage: document.getElementById('new-stage').value.trim() || 'Kickoff',
+      tags, branch: 'main',
+      recallCommand: document.getElementById('new-recall').value.trim() || `cd ${document.getElementById('new-path').value.trim() || `~/${id}`} && git log --oneline -5`,
+      history: [{ date: today, stage: document.getElementById('new-stage').value.trim() || 'Kickoff', note: 'Project added' }],
+      updatedAt: today
+    };
+    allProjects.push(p);
+    render();
+    closeAddModal();
+    await saveProjects();
+  }
+
+  document.addEventListener('keydown', e => {
+    const inp = document.getElementById('searchInput');
+    if (e.key === 'Escape' && inp.value) { clearSearch(); return; }
+    if (e.key === '/' && document.activeElement !== inp && !document.getElementById('addModal').classList.contains('open')) {
+      e.preventDefault(); inp.focus();
+    }
+  });
+
+  loadProjects().then(initDragDrop);
+  setInterval(() => {
+    const q = document.getElementById('searchInput').value.trim();
+    loadProjects().then(() => { if (q) filterProjects(q); });
+  }, 30000);
+</script>
+</body>
+</html>

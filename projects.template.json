@@ -1,0 +1,24 @@
+{
+  "projects": [
+    {
+      "id": "my-first-project",
+      "name": "My First Project",
+      "description": "A short description of what this project is about.",
+      "path": "~/my-first-project",
+      "products": ["webapp"],
+      "status": "active",
+      "stage": "In progress",
+      "tags": ["example"],
+      "branch": "main",
+      "recallCommand": "cd ~/my-first-project && git log --oneline -5",
+      "history": [
+        {
+          "date": "2026-01-01",
+          "stage": "Kickoff",
+          "note": "Project started."
+        }
+      ],
+      "updatedAt": "2026-01-01"
+    }
+  ]
+}
