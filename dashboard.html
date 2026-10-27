@@ -52,6 +52,10 @@
     @media (hover: hover) and (pointer: fine) {
       .btn-primary:hover { background: #4338ca; border-color: #4338ca; color: white; }
     }
+    .help-btn {
+      width: 30px; height: 30px; padding: 0; border-radius: 50%;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
 
     /* ── Main layout ─── */
     .kanban {
@@ -292,6 +296,142 @@
       .search-input:focus { width: 200px; }
       .last-sync { display: none; }
     }
+
+    /* ── Onboarding ──────────────────────────────── */
+    .onboarding-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 200;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .onboarding-overlay.open { display: flex; }
+
+    .onboarding-modal {
+      background: #111113; border: 1px solid #27272a; border-radius: 18px;
+      width: 480px; max-width: 90vw; overflow: hidden;
+      position: relative;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    .onboarding-skip {
+      position: absolute; top: 14px; right: 16px;
+      font-size: 11px; color: #52525b; background: none; border: none;
+      cursor: pointer; font-family: inherit; padding: 4px 6px;
+      transition: color 0.12s var(--ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .onboarding-skip:hover { color: #a1a1aa; }
+    }
+
+    .onboarding-visual {
+      height: 180px; background: #0d0d0f;
+      border-bottom: 1px solid #18181b;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+
+    /* Step visuals */
+    .vis-welcome {
+      display: flex; gap: 10px; align-items: flex-end; padding: 0 24px;
+    }
+    .vis-col {
+      flex: 1; background: #18181b; border: 1px solid #27272a;
+      border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 5px;
+    }
+    .vis-col-header { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+    .vis-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .vis-dot.green { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
+    .vis-dot.yellow { background: #eab308; }
+    .vis-dot.purple { background: #8b5cf6; }
+    .vis-dot.gray { background: #3f3f46; }
+    .vis-label { font-size: 8px; font-weight: 600; color: #52525b; text-transform: uppercase; letter-spacing: 0.06em; }
+    .vis-card { height: 28px; background: #27272a; border-radius: 4px; }
+    .vis-card.tall { height: 42px; }
+    .vis-card.short { height: 20px; }
+    .vis-card.accent { background: #1e1e38; border: 1px solid #2d2d5e; }
+
+    .vis-drag {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .vis-drag-card {
+      width: 200px; background: #18181b; border: 1px solid #4f46e5;
+      border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .vis-drag-handle { font-size: 14px; color: #4f46e5; }
+    .vis-drag-text { font-size: 11px; color: #a1a1aa; font-weight: 500; }
+    .vis-drag-arrow { font-size: 20px; color: #4f46e5; opacity: 0.6; }
+    .vis-drag-target {
+      width: 200px; height: 36px; border: 1.5px dashed #4f46e5;
+      border-radius: 8px; opacity: 0.5;
+    }
+
+    .vis-card-expand {
+      width: 220px; background: #18181b; border: 1px solid #4f46e5;
+      border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .vis-card-name { font-size: 11px; font-weight: 600; color: #fafafa; }
+    .vis-card-stage { font-size: 9px; background: #27272a; color: #71717a; padding: 2px 6px; border-radius: 100px; width: fit-content; }
+    .vis-card-divider { height: 1px; background: #27272a; margin: 2px 0; }
+    .vis-card-tl { display: flex; flex-direction: column; gap: 4px; }
+    .vis-card-tl-row { display: flex; gap: 6px; align-items: center; }
+    .vis-card-tl-dot { width: 5px; height: 5px; border-radius: 50%; background: #4f46e5; flex-shrink: 0; }
+    .vis-card-tl-text { font-size: 9px; color: #71717a; }
+
+    .vis-terminal {
+      background: #0a0a0c; border: 1px solid #27272a; border-radius: 8px;
+      padding: 14px 16px; width: 300px; font-family: 'SF Mono', 'Monaco', monospace;
+    }
+    .vis-terminal-bar { display: flex; gap: 5px; margin-bottom: 10px; }
+    .vis-terminal-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .vis-terminal-dot:nth-child(1) { background: #ef4444; }
+    .vis-terminal-dot:nth-child(2) { background: #eab308; }
+    .vis-terminal-dot:nth-child(3) { background: #22c55e; }
+    .vis-terminal-line { font-size: 10px; color: #71717a; margin-bottom: 4px; line-height: 1.6; }
+    .vis-terminal-line .cmd { color: #818cf8; }
+    .vis-terminal-line .str { color: #4ade80; }
+    .vis-terminal-line .out { color: #52525b; }
+
+    .vis-customize {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .vis-customize-row { display: flex; gap: 8px; }
+    .vis-chip {
+      font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 100px;
+      border: 1px solid;
+    }
+    .vis-chip.blue { background: #1e3a5f; color: #60a5fa; border-color: #1d4ed8; }
+    .vis-chip.green { background: #14532d; color: #4ade80; border-color: #166534; }
+    .vis-chip.purple { background: #3b0764; color: #c084fc; border-color: #7c3aed; }
+    .vis-chip.teal { background: #0d3d38; color: #2dd4bf; border-color: #0f766e; }
+    .vis-chip.add {
+      background: #18181b; color: #52525b; border-color: #27272a;
+      border-style: dashed; cursor: default;
+    }
+    .vis-customize-note { font-size: 10px; color: #52525b; text-align: center; max-width: 220px; line-height: 1.5; }
+
+    .onboarding-content { padding: 24px 28px 8px; }
+    .onboarding-step-tag { font-size: 10px; font-weight: 600; color: #4f46e5; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+    .onboarding-title { font-size: 18px; font-weight: 700; color: #fafafa; letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.2; }
+    .onboarding-body { font-size: 13px; color: #71717a; line-height: 1.6; }
+    .onboarding-code {
+      margin-top: 10px; background: #09090b; border: 1px solid #27272a;
+      border-radius: 7px; padding: 8px 12px;
+      font-family: 'SF Mono', 'Monaco', monospace; font-size: 11px;
+      color: #818cf8; line-height: 1.7;
+    }
+
+    .onboarding-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 28px 22px;
+    }
+    .onboarding-dots { display: flex; gap: 6px; align-items: center; }
+    .onboarding-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #27272a;
+      transition: background 0.2s var(--ease-out), width 0.2s var(--ease-out);
+      cursor: pointer;
+    }
+    .onboarding-dot.active { background: #4f46e5; width: 18px; border-radius: 3px; }
+    .onboarding-nav { display: flex; gap: 8px; }
   </style>
 </head>
 <body>
@@ -314,6 +454,7 @@
     <span class="last-sync" id="autoRefreshNote">Auto-refresh every 30s</span>
     <button class="btn" onclick="loadProjects()">↻ Refresh</button>
     <button class="btn btn-primary" onclick="openAddModal()">+ Add Project</button>
+    <button class="btn help-btn" onclick="showOnboarding()" title="How to use this tracker">?</button>
   </div>
 </header>
 
@@ -403,6 +544,26 @@
     <div class="modal-actions">
       <button class="btn" onclick="closeAddModal()">Cancel</button>
       <button class="btn btn-primary" onclick="addProject()">Add Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding Modal -->
+<div class="onboarding-overlay" id="onboardingOverlay" onclick="handleOverlayClick(event)">
+  <div class="onboarding-modal" onclick="event.stopPropagation()">
+    <button class="onboarding-skip" onclick="closeOnboarding()">Skip tour</button>
+    <div class="onboarding-visual" id="onboardingVisual"></div>
+    <div class="onboarding-content">
+      <div class="onboarding-step-tag" id="onboardingTag"></div>
+      <h2 class="onboarding-title" id="onboardingTitle"></h2>
+      <p class="onboarding-body" id="onboardingBody"></p>
+    </div>
+    <div class="onboarding-footer">
+      <div class="onboarding-dots" id="onboardingDots"></div>
+      <div class="onboarding-nav">
+        <button class="btn" id="onboardingBack" onclick="onboardingGo(-1)" style="display:none">← Back</button>
+        <button class="btn btn-primary" id="onboardingNext" onclick="onboardingGo(1)">Next →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -657,10 +818,135 @@
     await saveProjects();
   }
 
+  // ── Onboarding ─────────────────────────────────────────────────────────────
+  const OB_STEPS = [
+    {
+      tag: 'Welcome',
+      title: 'Your personal project tracker',
+      body: 'A local kanban for everything you\'re building — design, code, AI, whatever. Your data stays on your machine. No cloud, no accounts.',
+      visual: `<div class="vis-welcome">
+        <div class="vis-col" style="margin-top:16px">
+          <div class="vis-col-header"><div class="vis-dot green"></div><div class="vis-label">Active</div></div>
+          <div class="vis-card tall"></div><div class="vis-card"></div>
+        </div>
+        <div class="vis-col">
+          <div class="vis-col-header"><div class="vis-dot yellow"></div><div class="vis-label">Paused</div></div>
+          <div class="vis-card accent"></div><div class="vis-card short"></div><div class="vis-card"></div>
+        </div>
+        <div class="vis-col" style="margin-top:24px">
+          <div class="vis-col-header"><div class="vis-dot purple"></div><div class="vis-label">Parking Lot</div></div>
+          <div class="vis-card short"></div>
+        </div></div>`
+    },
+    {
+      tag: 'Columns',
+      title: 'Four states, zero clutter',
+      body: 'Active → Paused → Parking Lot → Archived. Drag any card between columns — changes save instantly. The Archived strip collapses to a thin bar on the right to stay out of your way.',
+      visual: `<div class="vis-drag">
+        <div class="vis-drag-card">
+          <span class="vis-drag-handle">⠿</span>
+          <span class="vis-drag-text">My Project</span>
+        </div>
+        <div class="vis-drag-arrow">↓</div>
+        <div class="vis-drag-target"></div></div>`
+    },
+    {
+      tag: 'Cards',
+      title: 'Click any card to expand',
+      body: 'Click a card to open the full history timeline, see the current stage, and copy the recall command — the shell command that jumps you right back into that project.',
+      visual: `<div class="vis-card-expand">
+        <div class="vis-card-name">Insight Feedback Prototype</div>
+        <div class="vis-card-stage">In review</div>
+        <div class="vis-card-divider"></div>
+        <div class="vis-card-tl">
+          <div class="vis-card-tl-row"><div class="vis-card-tl-dot"></div><div class="vis-card-tl-text">Oct 10 — Shipped highlight-to-steer UI</div></div>
+          <div class="vis-card-tl-row"><div class="vis-card-tl-dot" style="background:#27272a"></div><div class="vis-card-tl-text">Oct 5 — Kickoff, built prototype</div></div>
+        </div></div>`
+    },
+    {
+      tag: 'CLI',
+      title: 'Log progress without leaving the terminal',
+      body: 'Drop a .tracker-id file in any repo, then use the CLI to log a note — no browser needed.',
+      extra: `<div class="onboarding-code"><span style="color:#52525b"># inside any project repo:</span><br>echo "my-project" &gt; .tracker-id<br><br>~/project-tracker/project.sh here <span style="color:#4ade80">"finished the auth flow"</span></div>`,
+      visual: `<div class="vis-terminal">
+        <div class="vis-terminal-bar">
+          <div class="vis-terminal-dot"></div><div class="vis-terminal-dot"></div><div class="vis-terminal-dot"></div>
+        </div>
+        <div class="vis-terminal-line"><span class="cmd">~/project-tracker/project.sh here</span> <span class="str">"finished the auth flow"</span></div>
+        <div class="vis-terminal-line"><span class="out">✓ Logged to my-project</span></div></div>`
+    },
+    {
+      tag: 'Customize',
+      title: 'Make it yours',
+      body: 'Edit dashboard.html to add columns, labels, or colors. Attach videos to cards. Or open Claude Code in this folder and describe what you want — it knows the full schema.',
+      visual: `<div class="vis-customize">
+        <div class="vis-customize-row">
+          <div class="vis-chip blue">webapp</div>
+          <div class="vis-chip green">mobile</div>
+          <div class="vis-chip purple">ai</div>
+        </div>
+        <div class="vis-customize-row">
+          <div class="vis-chip teal">design</div>
+          <div class="vis-chip add">+ add label</div>
+        </div>
+        <div class="vis-customize-note">Open Claude Code in this folder and ask it to change anything</div></div>`
+    }
+  ];
+
+  let obStep = 0;
+
+  function renderOnboarding() {
+    const s = OB_STEPS[obStep];
+    document.getElementById('onboardingVisual').innerHTML = s.visual;
+    document.getElementById('onboardingTag').textContent = `${obStep + 1} of ${OB_STEPS.length}  ·  ${s.tag}`;
+    document.getElementById('onboardingTitle').textContent = s.title;
+    document.getElementById('onboardingBody').innerHTML = s.body + (s.extra || '');
+    document.getElementById('onboardingDots').innerHTML = OB_STEPS.map((_, i) =>
+      `<div class="onboarding-dot ${i === obStep ? 'active' : ''}" onclick="onboardingJump(${i})"></div>`
+    ).join('');
+    document.getElementById('onboardingBack').style.display = obStep === 0 ? 'none' : '';
+    document.getElementById('onboardingNext').textContent = obStep === OB_STEPS.length - 1 ? 'Get started →' : 'Next →';
+  }
+
+  function onboardingGo(dir) {
+    const next = obStep + dir;
+    if (next >= OB_STEPS.length) { closeOnboarding(); return; }
+    if (next < 0) return;
+    obStep = next;
+    renderOnboarding();
+  }
+
+  function onboardingJump(i) { obStep = i; renderOnboarding(); }
+
+  function showOnboarding() {
+    obStep = 0;
+    renderOnboarding();
+    document.getElementById('onboardingOverlay').classList.add('open');
+  }
+
+  function closeOnboarding() {
+    document.getElementById('onboardingOverlay').classList.remove('open');
+    localStorage.setItem('tracker_onboarded', '1');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('onboardingOverlay')) closeOnboarding();
+  }
+
+  if (!localStorage.getItem('tracker_onboarded')) {
+    setTimeout(showOnboarding, 600);
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
   document.addEventListener('keydown', e => {
     const inp = document.getElementById('searchInput');
-    if (e.key === 'Escape' && inp.value) { clearSearch(); return; }
-    if (e.key === '/' && document.activeElement !== inp && !document.getElementById('addModal').classList.contains('open')) {
+    if (e.key === 'Escape') {
+      if (document.getElementById('onboardingOverlay').classList.contains('open')) { closeOnboarding(); return; }
+      if (inp.value) { clearSearch(); return; }
+    }
+    if (e.key === '/' && document.activeElement !== inp
+        && !document.getElementById('addModal').classList.contains('open')
+        && !document.getElementById('onboardingOverlay').classList.contains('open')) {
       e.preventDefault(); inp.focus();
     }
   });

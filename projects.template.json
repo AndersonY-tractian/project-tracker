@@ -1,13 +1,63 @@
 {
   "projects": [
     {
+      "id": "sensor-events-kanban",
+      "name": "Sensor Events Kanban Cards",
+      "description": "Fleet Health drawer redesign — surfacing sensor events in a scannable kanban format.",
+      "path": "~/webapp",
+      "products": ["webapp"],
+      "status": "active",
+      "stage": "In development",
+      "tags": ["fleet", "kanban", "ui"],
+      "branch": "feat/sensor-events-kanban",
+      "recallCommand": "cd ~/webapp && gt checkout feat/sensor-events-kanban && git log --oneline -5",
+      "history": [
+        {
+          "date": "2026-10-10",
+          "stage": "Design",
+          "note": "Finalized card layout with primary/secondary event grouping."
+        },
+        {
+          "date": "2026-10-01",
+          "stage": "Kickoff",
+          "note": "Project scoped — replacing list view with kanban-style event cards in the Fleet Health drawer."
+        }
+      ],
+      "updatedAt": "2026-10-10"
+    },
+    {
+      "id": "insight-feedback-prototype",
+      "name": "Insight Description Feedback",
+      "description": "Highlight-to-steer feedback prototype — users select text in an insight and guide the AI rewrite.",
+      "path": "~/webapp",
+      "products": ["webapp", "ai"],
+      "status": "paused",
+      "stage": "In review",
+      "tags": ["ai", "feedback", "prototype"],
+      "branch": "feat/insight-feedback",
+      "recallCommand": "cd ~/webapp && gt checkout feat/insight-feedback && git log --oneline -5",
+      "history": [
+        {
+          "date": "2026-10-08",
+          "stage": "In review",
+          "note": "Prototype live — testing highlight + steer flow with 3 internal users."
+        },
+        {
+          "date": "2026-09-28",
+          "stage": "Kickoff",
+          "note": "Started highlight-to-steer prototype on the insight description component."
+        }
+      ],
+      "updatedAt": "2026-10-08"
+    },
+    {
       "id": "my-first-project",
       "name": "My First Project",
       "description": "A short description of what this project is about.",
       "path": "~/my-first-project",
       "products": ["webapp"],
-      "status": "active",
-      "stage": "In progress",
+      "status": "parking-lot",
+      "stage": "Backlog",
       "tags": ["example"],
       "branch": "main",
       "recallCommand": "cd ~/my-first-project && git log --oneline -5",
