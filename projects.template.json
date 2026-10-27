@@ -9,8 +9,12 @@
       "status": "active",
       "stage": "In development",
       "tags": ["fleet", "kanban", "ui"],
-      "branch": "feat/sensor-events-kanban",
-      "recallCommand": "cd ~/webapp && gt checkout feat/sensor-events-kanban && git log --oneline -5",
+      "branch": "feat/sensor-events-kanban-v2",
+      "branches": [
+        { "name": "feat/sensor-events-kanban-v2", "status": "active", "note": "New grouping approach" },
+        { "name": "feat/sensor-events-kanban-v1", "status": "paused", "note": "Parked — had perf issues" }
+      ],
+      "recallCommand": "cd ~/webapp && gt checkout feat/sensor-events-kanban-v2 && git log --oneline -5",
       "history": [
         {
           "date": "2026-10-10",

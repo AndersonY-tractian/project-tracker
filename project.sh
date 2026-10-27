@@ -1,10 +1,11 @@
 #!/bin/bash
 # Usage:
-#   project log <id> "<note>"               — add a log entry to a project
-#   project stage <id> "<stage>" "<note>"   — update current stage + log
+#   project log <id> "<note>"                            — add a log entry to a project
+#   project stage <id> "<stage>" "<note>"                — update current stage + log
 #   project status <id> active|paused|archived
-#   project recall <id>                     — print the recall command
-#   project ls                              — list all projects
+#   project branch <id> "<branch>" active|paused|done "<note>"  — add/update a branch
+#   project recall <id>                                  — print the recall command
+#   project ls                                           — list all projects
 
 PROJECTS_FILE="$HOME/project-tracker/projects.json"
 
@@ -127,6 +128,36 @@ PYEOF
     fi
     ;;
 
+  branch)
+    branch_name="$3"
+    branch_status="$4"
+    branch_note="$5"
+    today=$(date '+%Y-%m-%d')
+    python3 - "$id" "$branch_name" "$branch_status" "$branch_note" "$today" "$PROJECTS_FILE" << 'PYEOF'
+import json, sys
+id, branch_name, branch_status, branch_note, today, path = sys.argv[1:]
+data = json.load(open(path))
+for p in data['projects']:
+    if p['id'] == id:
+        branches = p.setdefault('branches', [])
+        existing = next((b for b in branches if b['name'] == branch_name), None)
+        if existing:
+            if branch_status: existing['status'] = branch_status
+            if branch_note:   existing['note'] = branch_note
+            print(f"✓ Updated branch {branch_name} on {p['name']}")
+        else:
+            branches.insert(0, {'name': branch_name, 'status': branch_status or 'active', 'note': branch_note or ''})
+            print(f"✓ Added branch {branch_name} to {p['name']}")
+        p['updatedAt'] = today
+        break
+else:
+    print(f"Project '{id}' not found. Run: project ls")
+    sys.exit(1)
+with open(path, 'w') as f:
+    json.dump(data, f, indent=2)
+PYEOF
+    ;;
+
   ls|list)
     python3 - "$PROJECTS_FILE" << 'PYEOF'
 import json, sys
@@ -142,11 +173,12 @@ PYEOF
   *)
     echo ""
     echo "Usage:"
-    echo "  project ls                              — list all projects"
-    echo "  project log <id> \"<note>\"               — add a log entry"
-    echo "  project stage <id> \"<stage>\" \"<note>\"   — update stage"
+    echo "  project ls                                           — list all projects"
+    echo "  project log <id> \"<note>\"                           — add a log entry"
+    echo "  project stage <id> \"<stage>\" \"<note>\"               — update stage"
     echo "  project status <id> active|paused|archived"
-    echo "  project recall <id>                     — print recall command"
+    echo "  project branch <id> \"<branch>\" active|paused|done \"<note>\"  — add/update branch"
+    echo "  project recall <id>                                  — print recall command"
     echo ""
     ;;
 esac
